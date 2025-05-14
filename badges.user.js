@@ -12,39 +12,56 @@
 (function() {
     'use strict';
 
-    // Your code here...
-    async function appendBadges() {
-        document.querySelectorAll('.post-header').forEach(async (post) => {
-            const usernameSpan = post.querySelector('span[style="font-weight: bold;"]');
+    async function appendBadgesTo(post) {
+        const usernameSpan = post.querySelector('span[style="font-weight: bold;"]');
+        if (!usernameSpan) return;
 
-            const usernameText = usernameSpan.textContent.trim();
+        const usernameText = usernameSpan.textContent.trim();
+        try {
+            const response = await fetch(`https://pikidiary-api.vercel.app/?username=${usernameText}`);
+            const json = await response.json();
 
-            try {
-                const response = await fetch(`https://pikidiary-api.vercel.app/?username=${usernameText}`);
-                const json = await response.json();
-
-                json.badges.forEach((badge) => {
-                    const img = document.createElement('img');
-
-                    img.src = badge.iconUrl;
-                    img.title = badge.name;
-                    img.alt = badge.name;
-                    img.style.height = '16px';
-                    img.style.marginLeft = '2px';
-                    img.style.verticalAlign = 'middle';
-
-                    usernameSpan.appendChild(img);
-                });
-            } catch (err) {
-                console.error('Fetch error:', err);
-            }
-        });
+            json.badges.forEach((badge) => {
+                const img = document.createElement('img');
+                img.src = badge.iconUrl;
+                img.title = badge.name;
+                img.alt = badge.name;
+                img.style.height = '16px';
+                img.style.marginLeft = '2px';
+                img.style.verticalAlign = 'middle';
+                usernameSpan.appendChild(img);
+            });
+        } catch (err) {
+            console.error('Fetch error:', err);
+        }
     }
 
-    appendBadges();
+    function addBadgesToAll() {
+        document.querySelectorAll('.post-header').forEach(appendBadgesTo);
+    }
 
-    document.querySelectorAll('.tab').forEach(tab => {
-  tab.addEventListener('click', () => setTimeout(appendBadges, 2000));
-});
+    addBadgesToAll();
 
+    const observer = new MutationObserver(mutations => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.nodeType === 1) {
+                    if (node.classList.contains('post-header')) {
+                        appendBadgesTo(node);
+                    } else {
+                        const posts = node.querySelectorAll?.('.post-header');
+                        posts?.forEach(appendBadgesTo);
+                    }
+                }
+            });
+        });
+    });
+
+    const target = document.querySelector(".tab-contents");
+    if (target) {
+        observer.observe(target, {
+            childList: true,
+            subtree: true
+        });
+    }
 })();
