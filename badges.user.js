@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         swagBadges
 // @namespace    http://tampermonkey.net/
-// @version      1.1
+// @version      1.2
 // @description  slay
 // @author       hacks.guide
 // @match        https://pikidiary.lol/*
@@ -12,27 +12,45 @@
 (function() {
     'use strict';
 
+    const usernameCache = new Map(
+    Object.entries(JSON.parse(localStorage.getItem("usernameCache") || "{}"))
+    );
+
+    function addBadge(usernameSpan, badges) {
+        badges.forEach((badge) => {
+            const img = document.createElement('img');
+            img.src = badge.iconUrl;
+            img.title = badge.name;
+            img.alt = badge.name;
+            img.style.height = '16px';
+            img.style.marginLeft = '2px';
+            img.style.verticalAlign = 'middle';
+            usernameSpan.appendChild(img);
+        });
+    }
+
     async function appendBadgesTo(post) {
         const usernameSpan = post.querySelector('span[style="font-weight: bold;"]');
         if (!usernameSpan) return;
 
-        const usernameText = usernameSpan.textContent.trim();
+        const usernameText = usernameSpan.textContent.trim().toLowerCase();
+
+        if (usernameCache.has(usernameText)) {
+            addBadge(usernameSpan, usernameCache.get(usernameText));
+            return;
+        }
+
         try {
             const response = await fetch(`https://pikidiary-api.vercel.app/?username=${usernameText}`);
             const json = await response.json();
 
-            json.badges.forEach((badge) => {
-                const img = document.createElement('img');
-                img.src = badge.iconUrl;
-                img.title = badge.name;
-                img.alt = badge.name;
-                img.style.height = '16px';
-                img.style.marginLeft = '2px';
-                img.style.verticalAlign = 'middle';
-                usernameSpan.appendChild(img);
-            });
+            addBadge(usernameSpan, json.badges);
+            usernameCache.set(usernameText, json.badges);
+
+            localStorage.setItem("usernameCache", JSON.stringify(Object.fromEntries(usernameCache)));
         } catch (err) {
             console.error('Fetch error:', err);
+            usernameCache.set(usernameText, []);
         }
     }
 
