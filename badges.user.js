@@ -12,9 +12,7 @@
 (function() {
     'use strict';
 
-    const usernameCache = new Map(
-    Object.entries(JSON.parse(localStorage.getItem("usernameCache") || "{}"))
-    );
+    const usernameCache = new Map();
 
     function addBadge(usernameSpan, badges) {
         badges.forEach((badge) => {
@@ -46,8 +44,6 @@
 
             addBadge(usernameSpan, json.badges);
             usernameCache.set(usernameText, json.badges);
-
-            localStorage.setItem("usernameCache", JSON.stringify(Object.fromEntries(usernameCache)));
         } catch (err) {
             console.error('Fetch error:', err);
             usernameCache.set(usernameText, []);
