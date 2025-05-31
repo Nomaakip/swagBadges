@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         swagBadges
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  slay
 // @author       hacks.guide
 // @match        https://pikidiary.lol/*
