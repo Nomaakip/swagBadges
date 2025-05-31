@@ -71,7 +71,7 @@
         });
     });
 
-    const target = document.querySelector(".tab-contents");
+    const target = document.querySelector(".tab-contents, .posts-cont");
     if (target) {
         observer.observe(target, {
             childList: true,
